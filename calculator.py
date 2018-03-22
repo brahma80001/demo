@@ -12,7 +12,7 @@ class Args(object):
     2. 当参数格式出错时，抛出异常.
     """
     def pathByChar(self,flag):
-        return args[args.index(flag)+1]
+        return self.args[self.args.index(flag)+1]
 
 # 配置文件类
 class Config(object):
@@ -22,10 +22,13 @@ class Config(object):
     # 配置文件读取内部函数
     def _read_config(self,path):
         config = {}
-        with open(path,'r') as f:
-            for a in f.readlines():
-                temp=tuple(a.strip().split('='))
-                config[temp[0]]=temp[1]
+        try:
+            with open(path,'r') as f:
+                for a in f.readlines():
+                    temp=tuple(a.split('='))
+                    config[temp[0].strip()]=temp[1].strip()
+        except:
+            print("file is not found")
         return config
         """
         补充代码：
@@ -33,8 +36,8 @@ class Config(object):
         2. 使用 strip() 和 split() 对读取到的配置文件去掉空格以及切分.
         3. 当格式出错时，抛出异常.
         """
-    def get_config(self,arg):
-        return self.config[arg]
+    def get_config(self,tem):
+        return self.config[tem]
 
 
 # 用户数据类
@@ -48,8 +51,13 @@ class UserData(object):
         userdata = {}
         with open(path,'r') as f:
             for a in f.readlines():
-                temp=tuple(a.strip(),split(','))
-                userdata[temp[0]] = temp[1]
+                temp=tuple(a.strip().split(','))
+                money = 0
+                try:
+                   money=int(temp[1])
+                except:
+                   print("Paramiter is Error")
+                userdata[temp[0]] = money
         return userdata
         """
         补充代码：
@@ -66,24 +74,29 @@ class IncomeTaxCalculator(object):
 	
     # 计算每位员工的税后工资函数
     def calc_for_all_userdata(self):
-       data = []
-       for gh,gz self.usdata.userdata.items():
-           sheb = getSelfShebaoE(gz)
-           kous = getSelfGeShui(gz)
-           zuih = gz-sheb-kous
-           str = str(gh)+','+str(format(gz,'.2f'))+','+str(format(sheb,'.2f'))+','+str(format(kous,'.2f'))+','+str(format(zuih,'.2f'))
-           data.append(str)
-       return data
+        data = []
+        for gh,gz in  self.usdata.userdata.items():
+            sheb = self.getSelfShebaoE(float(gz))
+            kous = self.getSelfGeShui(float(gz))
+            zuih = float(gz)-sheb-kous
+            str = '{},{},{},{},{}'.format(gh,format(int(gz)),format(sheb,'.2f'),format(kous,'.2f'),format(zuih,'.2f'))
+            data.append(str)
+        return data
         """
-        补充代码：
-        1. 计算每位员工的税后工资（扣减个税和社保）.
-        2. 注意社保基数的判断.
-        3. 将每位员工的税后工资按指定格式返回.
+         补充代码：
+         1. 计算每位员工的税后工资（扣减个税和社保）.
+         2. 注意社保基数的判断.
+         3. 将每位员工的税后工资按指定格式返回.
         """
     def getSelfShebaoE(self,money):
-        max = self.cfg.get_config('JiShuH')
-        min = self.cfg.get_config('JiShuL')
-        lv = self.cfg.get_config('YangLao')+self.cfg.get_config('YiLiao')+self.cfg.get_config('ShiYe')+self.cfg.get_config('GongShang')+self.cfg.get_config('ShengYu')+self.cfg.get_config('GongJiJin')
+        max = float(self.cfg.get_config('JiShuH'))
+        min = float(self.cfg.get_config('JiShuL'))
+        lv  = float(self.cfg.get_config('YangLao'))
+        lv += float(self.cfg.get_config('YiLiao'))
+        lv += float(self.cfg.get_config('ShiYe'))
+        lv += float(self.cfg.get_config('GongShang'))
+        lv += float(self.cfg.get_config('ShengYu'))
+        lv += float(self.cfg.get_config('GongJiJin'))
         if money>0 and money<min:
             return min*lv
         elif money>=min and money <=max:
@@ -94,8 +107,8 @@ class IncomeTaxCalculator(object):
             return 0
     def getSelfGeShui(self,money):
         shebao = self.getSelfShebaoE(money)
-        sqe = money - shebao -3500
-        if sqe <=0 
+        sqe = float(money) - shebao -3500
+        if sqe <=0: 
             return 0
         elif sqe>0 and sqe<=1500:
             return sqe*0.03-0
@@ -114,18 +127,16 @@ class IncomeTaxCalculator(object):
     # 输出 CSV 文件函数
     def export(self,arg,default='csv'):
         result = self.calc_for_all_userdata()
-        with open(arg,'w') as f:
-            writer = csv.writer(f)
-            writer.writerows(result)
+        with open(arg,'wa') as f:
+            for lin in result:
+                 f.write(lin+'\n')
+            #writer = csv.writer(f)
+            #writer.writerows(result)
 # 执行
 if __name__ == '__main__':
     argIni = Args()
     cfg = Config(argIni.pathByChar('-c'))
-	usrdata = UserData(argIni.pathByChar('-d'))
-	jisuan = IncomeTaxCalculator(cfg,usrdata)
-	jisuan.calc_for_all_userdata()
-	jisuan.export(argIni.pathByChar('-o'))
-	
-	
-
-    
+    usrdata = UserData(argIni.pathByChar('-d'))
+    jisuan = IncomeTaxCalculator(cfg,usrdata)
+    jisuan.calc_for_all_userdata()
+    jisuan.export(argIni.pathByChar('-o'))
