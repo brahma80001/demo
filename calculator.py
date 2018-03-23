@@ -29,7 +29,7 @@ class Config(object):
                     config[temp[0].strip()]=temp[1].strip()
         except:
             print("file is not found")
-	    exit()
+            exit()
         return config
         """
         补充代码：
@@ -58,7 +58,7 @@ class UserData(object):
                    money=int(temp[1])
                 except:
                    print("Paramiter is Error")
-		   exit()
+                   exit()
                 userdata.append((temp[0], money))
         return userdata
         """
@@ -129,7 +129,7 @@ class IncomeTaxCalculator(object):
     # 输出 CSV 文件函数
     def export(self,arg,default='csv'):
         result = self.calc_for_all_userdata()
-        with open(arg,'wa') as f:
+        with open(arg,'w') as f:
             for lin in result:
                  f.write(lin+'\n')
             #writer = csv.writer(f)
