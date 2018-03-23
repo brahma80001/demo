@@ -29,6 +29,7 @@ class Config(object):
                     config[temp[0].strip()]=temp[1].strip()
         except:
             print("file is not found")
+	    exit()
         return config
         """
         补充代码：
@@ -48,7 +49,7 @@ class UserData(object):
 
     # 用户数据读取内部函数
     def _read_users_data(self,path):
-        userdata = {}
+        userdata = []
         with open(path,'r') as f:
             for a in f.readlines():
                 temp=tuple(a.strip().split(','))
@@ -57,7 +58,8 @@ class UserData(object):
                    money=int(temp[1])
                 except:
                    print("Paramiter is Error")
-                userdata[temp[0]] = money
+		   exit()
+                userdata.append((temp[0], money))
         return userdata
         """
         补充代码：
@@ -75,11 +77,11 @@ class IncomeTaxCalculator(object):
     # 计算每位员工的税后工资函数
     def calc_for_all_userdata(self):
         data = []
-        for gh,gz in  self.usdata.userdata.items():
-            sheb = self.getSelfShebaoE(float(gz))
-            kous = self.getSelfGeShui(float(gz))
-            zuih = float(gz)-sheb-kous
-            str = '{},{},{},{},{}'.format(gh,format(int(gz)),format(sheb,'.2f'),format(kous,'.2f'),format(zuih,'.2f'))
+        for gh,gz in  self.usdata.userdata:
+            sheb = self.getSelfShebaoE(gz)
+            kous = self.getSelfGeShui(gz)
+            zuih = gz-sheb-kous
+            str = '{},{},{},{},{}'.format(gh,gz,format(sheb,'.2f'),format(kous,'.2f'),format(zuih,'.2f'))
             data.append(str)
         return data
         """
