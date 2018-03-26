@@ -83,13 +83,13 @@ class IncomeTaxCalculator(object):
             kous = self.getSelfGeShui(gz)
             zuih = gz-sheb-kous
             str = '{},{},{},{},{}'.format(gh,gz,format(sheb,'.2f'),format(kous,'.2f'),format(zuih,'.2f'))
-        return str
-        """
-         补充代码：
-         1. 计算每位员工的税后工资（扣减个税和社保）.
-         2. 注意社保基数的判断.
-         3. 将每位员工的税后工资按指定格式返回.
-        """
+            return str
+            """
+            补充代码：
+            1. 计算每位员工的税后工资（扣减个税和社保）.
+            2. 注意社保基数的判断.
+            3. 将每位员工的税后工资按指定格式返回.
+            """
     def getSelfShebaoE(self,money):
         max = float(self.cfg.get_config('JiShuH'))
         min = float(self.cfg.get_config('JiShuL'))
@@ -133,24 +133,29 @@ class ExportUtil(object):
         pass
     def export(self,arg,temp,default='csv'):
         with open(arg,'a') as f:
-            f.write(lin+'\n')
+            print(temp)
+            f.write(temp+'\n')
             #writer = csv.writer(f)
             #writer.writerows(result)
             
 def huoUserData(user):
-   for tt in userdata.userdata:
+   print('ddd')
+   for tt in user.userdata:
        queue.put(tt)
 def huoCalData(jisuan):
+   print('ggg')
    temp=[]
-   while Queue.empty(queue):
-       temp.append(jisuan.calc_for_all_userdata(queue.get()))
+   while not queue.empty():
+       tpd=queue.get()
+       temp.append(jisuan.calc_for_all_userdata(tpd))
    for tt in temp:
        queue.put(tt)
 def xieru():
+    print('ttttt')
     argIni = Args()
     argIni.pathByChar('-o')
     xieru = ExportUtil()
-    while Queue.empty(queue):
+    while not queue.empty():
         xieru.export(argIni.pathByChar('-o'),queue.get())
 # 执行
 if __name__ == '__main__':
@@ -158,7 +163,13 @@ if __name__ == '__main__':
     cfg = Config(argIni.pathByChar('-c'))
     usrdata = UserData(argIni.pathByChar('-d'))
     jisuan = IncomeTaxCalculator(cfg)
-    Process(target=huoUserData,args=(userdata,)).start()
-    Process(target=huoCalData,args=(jisuan,)).start()
-    Process(target=xieru).start()
+    p1=Process(target=huoUserData,args=(usrdata,))
+    p1.start()
+    p1.join()
+    p2=Process(target=huoCalData,args=(jisuan,))
+    p2.start()
+    p2.join()
+    p3=Process(target=xieru)
+    p3.start()
+    p3.join()
    
