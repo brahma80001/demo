@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 import sys,csv,getopt,configparser
 from datetime import datetime
+from multiprocessing import Process,Queue
+q = Queue()
 # 处理命令行参数类
 class Args(object):
     def __init__(self):
@@ -87,27 +89,19 @@ class UserData(object):
 
 # 税后工资计算类
 class IncomeTaxCalculator(object):
-    def __init__(self,cfgobj,usdata):
+    def __init__(self,cfgobj):
         self.cfg = cfgobj
-        self.usdata = usdata
 	
     # 计算每位员工的税后工资函数
-    def calc_for_all_userdata(self):
-        data = []
+    def calc_for_all_userdata(self,temp):
+	    gh = temp[0]
+        gz = temp[1]
         t=datetime.now()
-        for gh,gz in  self.usdata.userdata:
-            sheb = self.getSelfShebaoE(gz)
-            kous = self.getSelfGeShui(gz)
-            zuih = gz-sheb-kous
-            str = '{},{},{},{},{},{}'.format(gh,gz,format(sheb,'.2f'),format(kous,'.2f'),format(zuih,'.2f'),datetime.strftime(t,'%Y-%m-%d %H:%M:%S'))
-            data.append(str)
-        return data
-        """
-         补充代码：
-         1. 计算每位员工的税后工资（扣减个税和社保）.
-         2. 注意社保基数的判断.
-         3. 将每位员工的税后工资按指定格式返回.
-        """
+        sheb = self.getSelfShebaoE(gz)
+        kous = self.getSelfGeShui(gz)
+        zuih = gz-sheb-kous
+        str = '{},{},{},{},{},{}'.format(gh,gz,format(sheb,'.2f'),format(kous,'.2f'),format(zuih,'.2f'),datetime.strftime(t,'%Y-%m-%d %H:%M:%S'))
+        return str
     def getSelfShebaoE(self,money):
         maxval = float(self.cfg.maxValue)
         minval = float(self.cfg.minValue)
@@ -140,18 +134,43 @@ class IncomeTaxCalculator(object):
         elif sqe>80000:
             return sqe*0.45-13505
     # 输出 CSV 文件函数
-    def export(self,arg,default='csv'):
+
+class ExportUtil(object):
+    def __init__(self)
+	     pass
+    def export(self,arg,temp,default='csv'):
         result = self.calc_for_all_userdata()
-        with open(arg,'w') as f:
-            for lin in result:
-                 f.write(lin+'\n')
-            #writer = csv.writer(f)
-            #writer.writerows(result)
-# 执行
+        with open(arg,'a') as f:
+            f.write(temp+'\n')
+
+def huoUserData(user):
+   for tt in user.userdata:
+       queue.put(tt)
+def huoCalData(jisuan):
+   temp=[]
+   while not queue.empty():
+       tpd=queue.get()
+       temp.append(jisuan.calc_for_all_userdata(tpd))
+   for tt in temp:
+       queue.put(tt)
+def xieru():
+    argIni = Args()
+    argIni.pathByChar('-o')
+    xieru = ExportUtil()
+    while not queue.empty():
+        xieru.export(argIni.pathByChar('-o'),queue.get())
+		
 if __name__ == '__main__':
     argIni = Args()
     cfg = Config(argIni.pathByChar('-c'),argIni.pathByChar('-C'))
     usrdata = UserData(argIni.pathByChar('-d'))
-    jisuan = IncomeTaxCalculator(cfg,usrdata)
-    jisuan.calc_for_all_userdata()
-    jisuan.export(argIni.pathByChar('-o'))
+    jisuan = IncomeTaxCalculator(cfg)
+    p1=Process(target=huoUserData,args=(usrdata,))
+    p1.start()
+    p1.join()
+    p2=Process(target=huoCalData,args=(jisuan,))
+    p2.start()
+    p2.join()
+    p3=Process(target=xieru)
+    p3.start()
+    p3.join()
