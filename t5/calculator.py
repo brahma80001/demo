@@ -1,44 +1,61 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys,csv,getopt,configparser
-import csv # 用于写入 csv 文件
+from datetime import datetime
 # 处理命令行参数类
 class Args(object):
     def __init__(self):
-	self.opts,_= getopt,getopt(sys.argv[1:],'C:c:d:o:h','help')
+        self.args={}
+        try:
+             opts,argsctn= getopt.getopt(sys.argv[1:],'C:c:d:o:h',['help'])
+        except getopt.GetoptError:
+            print("args is Error")
+            exit()
+        for flag,ctn in opts:
+            if flag in ['h','--help']:
+               self.args[flag]="Usage: calculator.py -C cityname -c configfile -d userdata -o resultdata"
+               print(self.args[flag])
+            else:
+               self.args[flag]=ctn
+           
     """
     补充代码：
     1. 补充参数读取函数，并返回相应的路径.
     2. 当参数格式出错时，抛出异常.
     """
     def pathByChar(self,flag):
-        return self.args[self.args.index(flag)+1]
+        return self.args[flag]
 
 # 配置文件类
 class Config(object):
-    def __init__(self,path):
-        self.config = self._read_config(path)
-
+    def __init__(self,path,secFlag):
+        self.maxValue,self.minValue,self.rais = self._read_config(path,secFlag)
     # 配置文件读取内部函数
-    def _read_config(self,path):
-        config = {}
+    def _read_config(self,path,secFlag):
+        maxval=0.00
+        minval=0.00
+        rais=0.00
         try:
-            with open(path,'r') as f:
-                for a in f.readlines():
-                    temp=tuple(a.split('='))
-                    config[temp[0].strip()]=temp[1].strip()
+            config = configparser.ConfigParser()
+            config.read(path)
+            for t1,t2 in config.items(secFlag.upper()):
+                t2=float(t2)
+                if t1 == 'JiShuL':
+                    minval=t2
+                elif t1=='JiShuH':
+                    maxval=t2
+                else: 
+                    rais+=t2
         except:
-            print("file is not found")
+            print("config is error!!")
             exit()
-        return config
+        return maxval,minval,rais
         """
         补充代码：
         1. 根据参数指定的配置文件路径，读取配置文件信息，并写入到 config 字典中.
         2. 使用 strip() 和 split() 对读取到的配置文件去掉空格以及切分.
         3. 当格式出错时，抛出异常.
         """
-    def get_config(self,tem):
-        return self.config[tem]
 
 
 # 用户数据类
@@ -77,11 +94,12 @@ class IncomeTaxCalculator(object):
     # 计算每位员工的税后工资函数
     def calc_for_all_userdata(self):
         data = []
+        t=datetime.now()
         for gh,gz in  self.usdata.userdata:
             sheb = self.getSelfShebaoE(gz)
             kous = self.getSelfGeShui(gz)
             zuih = gz-sheb-kous
-            str = '{},{},{},{},{}'.format(gh,gz,format(sheb,'.2f'),format(kous,'.2f'),format(zuih,'.2f'))
+            str = '{},{},{},{},{},{}'.format(gh,gz,format(sheb,'.2f'),format(kous,'.2f'),format(zuih,'.2f'),datetime.strftime(t,'%Y-%m-%d %H:%M:%S'))
             data.append(str)
         return data
         """
@@ -91,20 +109,15 @@ class IncomeTaxCalculator(object):
          3. 将每位员工的税后工资按指定格式返回.
         """
     def getSelfShebaoE(self,money):
-        max = float(self.cfg.get_config('JiShuH'))
-        min = float(self.cfg.get_config('JiShuL'))
-        lv  = float(self.cfg.get_config('YangLao'))
-        lv += float(self.cfg.get_config('YiLiao'))
-        lv += float(self.cfg.get_config('ShiYe'))
-        lv += float(self.cfg.get_config('GongShang'))
-        lv += float(self.cfg.get_config('ShengYu'))
-        lv += float(self.cfg.get_config('GongJiJin'))
-        if money>0 and money<min:
-            return min*lv
-        elif money>=min and money <=max:
-            return money*lv
-        elif money>max:
-            return max*lv
+        maxval = float(self.cfg.maxValue)
+        minval = float(self.cfg.minValue)
+        rais  = float(self.cfg.rais)
+        if money>0 and money<minval:
+            return minval*rais
+        elif money>=minval and money <=maxval:
+            return money*rais
+        elif money>maxval:
+            return maxval*rais
         else:
             return 0
     def getSelfGeShui(self,money):
@@ -137,7 +150,7 @@ class IncomeTaxCalculator(object):
 # 执行
 if __name__ == '__main__':
     argIni = Args()
-    cfg = Config(argIni.pathByChar('-c'))
+    cfg = Config(argIni.pathByChar('-c'),argIni.pathByChar('-C'))
     usrdata = UserData(argIni.pathByChar('-d'))
     jisuan = IncomeTaxCalculator(cfg,usrdata)
     jisuan.calc_for_all_userdata()
