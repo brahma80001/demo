@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-import sys
+import sys,csv,getopt,configparser
 import csv # 用于写入 csv 文件
 # 处理命令行参数类
 class Args(object):
     def __init__(self):
-        self.args = sys.argv[1:]
+	self.opts,_= getopt,getopt(sys.argv[1:],'C:c:d:o:h','help')
     """
     补充代码：
     1. 补充参数读取函数，并返回相应的路径.
