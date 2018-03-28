@@ -94,7 +94,7 @@ class IncomeTaxCalculator(object):
 	
     # 计算每位员工的税后工资函数
     def calc_for_all_userdata(self,temp):
-	    gh = temp[0]
+        gh = temp[0]
         gz = temp[1]
         t=datetime.now()
         sheb = self.getSelfShebaoE(gz)
@@ -136,29 +136,28 @@ class IncomeTaxCalculator(object):
     # 输出 CSV 文件函数
 
 class ExportUtil(object):
-    def __init__(self)
-	     pass
+    def __init__(self):
+        pass
     def export(self,arg,temp,default='csv'):
-        result = self.calc_for_all_userdata()
         with open(arg,'a') as f:
             f.write(temp+'\n')
 
 def huoUserData(user):
    for tt in user.userdata:
-       queue.put(tt)
+       q.put(tt)
 def huoCalData(jisuan):
    temp=[]
-   while not queue.empty():
-       tpd=queue.get()
+   while not q.empty():
+       tpd=q.get()
        temp.append(jisuan.calc_for_all_userdata(tpd))
    for tt in temp:
-       queue.put(tt)
+       q.put(tt)
 def xieru():
     argIni = Args()
     argIni.pathByChar('-o')
     xieru = ExportUtil()
-    while not queue.empty():
-        xieru.export(argIni.pathByChar('-o'),queue.get())
+    while not q.empty():
+        xieru.export(argIni.pathByChar('-o'),q.get())
 		
 if __name__ == '__main__':
     argIni = Args()
