@@ -32,6 +32,7 @@ class Args(object):
 class Config(object):
     def __init__(self,path,secFlag):
         self.maxValue,self.minValue,self.rais = self._read_config(path,secFlag)
+        print("da:{},xiao:{},lv:{}".format(self.maxValue,self.minValue,self.rais))
     # 配置文件读取内部函数
     def _read_config(self,path,secFlag):
         maxval=0.00
@@ -41,10 +42,11 @@ class Config(object):
             config = configparser.ConfigParser()
             config.read(path)
             for t1,t2 in config.items(secFlag.upper()):
+                t1=t1.lower()
                 t2=float(t2)
-                if t1 == 'JiShuL':
+                if t1 == 'jishul':
                     minval=t2
-                elif t1=='JiShuH':
+                elif t1=='jishuh':
                     maxval=t2
                 else: 
                     rais+=t2
